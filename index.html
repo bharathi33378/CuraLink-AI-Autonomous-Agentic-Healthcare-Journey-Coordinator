@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuraLink AI | Intelligent Healthcare Assistant Agent</title>
+  <meta name="description" content="Enterprise-Grade AI Healthcare Assistant Agent featuring Automatic Appointment Booking, Health Analytics Dashboard, Smart Medicine Reminders, PDF Health Summary Exporter, Doctor Copilot, and HL7 FHIR Interoperability.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="agent.css">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- PRINT ONLY HOSPITAL REPORT BANNER -->
+  <div id="pdf-header-print-banner" style="display: none;">
+    <h1 style="color: #0284c7; font-size: 22pt;">CURALINK AI - OFFICIAL CLINICAL HEALTH SUMMARY</h1>
+    <p style="font-size: 10pt; color: #555555;">Generated on 2026-08-05 | HL7 FHIR R4 Compliant Patient Record</p>
+  </div>
+
+  <!-- APP HEADER & GLOBAL NAVIGATION -->
+  <header class="app-header">
+    <div class="header-container">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="brand-logo">
+        <div class="logo-badge"><i class="fa-solid fa-heart-pulse"></i></div>
+        <div>
+          <span class="gradient-text" style="font-size: 1.4rem; font-weight: 800;">CuraLink AI</span>
+          <span style="font-size: 0.75rem; display: block; color: var(--text-muted); font-weight: 500; margin-top: -4px;">Intelligent Healthcare Assistant Agent</span>
+        </div>
+      </a>
+
+      <!-- Powerful Instant Search Bar -->
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="global-search-input" class="search-input" placeholder="Search by Patient ID (e.g. PAT-1001), Name, Mobile, DOB, Doctor..." oninput="handleInstantSearch(this.value)" onfocus="handleInstantSearch(this.value)">
+        <div id="search-dropdown" class="search-results-dropdown"></div>
+      </div>
+
+      <!-- Patient Selector Dropdown -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600;"><i class="fa-solid fa-hospital-user" style="color: var(--accent-blue);"></i> Patient:</span>
+        <select id="patient-selector" class="control-select" onchange="changeActivePatient(this.value)" style="border-color: var(--accent-blue);">
+          <!-- 35 Patients Injected Dynamic -->
+        </select>
+      </div>
+
+      <!-- Portal Switcher -->
+      <div class="portal-switch">
+        <button id="btn-portal-patient" class="portal-btn active" onclick="switchPortal('patient')">
+          <i class="fa-solid fa-user-injured"></i> <span data-i18n="patientPortal">Patient Portal</span>
+        </button>
+        <button id="btn-portal-doctor" class="portal-btn" onclick="switchPortal('doctor')">
+          <i class="fa-solid fa-stethoscope"></i> <span data-i18n="doctorPortal">Doctor Copilot & Timeline</span>
+        </button>
+        <button id="btn-portal-admin" class="portal-btn" onclick="switchPortal('admin')">
+          <i class="fa-solid fa-shield-halved"></i> <span data-i18n="adminPortal">Admin Completeness Audit</span>
+        </button>
+      </div>
+
+      <!-- Controls: Multilingual, Theme, Voice, Notifs, PDF -->
+      <div class="nav-controls">
+        <select id="lang-select" class="control-select" onchange="changeLanguage(this.value)" title="Select Language">
+          <option value="en">🇺🇸 English</option>
+          <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+          <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+          <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+          <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+          <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
+        </select>
+
+        <button id="btn-elder-mode" class="control-btn" onclick="toggleElderMode()" title="Elder Accessibility Mode">
+          <i class="fa-solid fa-glasses"></i> <span data-i18n="elderMode">Elder Mode</span>
+        </button>
+
+        <button class="control-btn" onclick="toggleDarkTheme()" title="Toggle Dark/Light Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="control-btn" onclick="readActiveScreenAloud()" title="Listen to Page Summary">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+
+        <button class="control-btn" style="position: relative;" onclick="openNotificationsModal()" title="View Notifications Center">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notif-badge-count" style="position: absolute; top: -4px; right: -4px; background: var(--accent-rose); color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 700; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">4</span>
+        </button>
+
+        <button class="btn-primary" style="padding: 8px 14px; font-size: 0.85rem;" onclick="openQuickSummaryModal()">
+          <i class="fa-solid fa-bolt"></i> 30-Sec Summary
+        </button>
+
+        <!-- DOWNLOAD HEALTH SUMMARY AS PDF BUTTON -->
+        <button class="btn-primary" style="padding: 8px 14px; font-size: 0.85rem; background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple)); color: white;" onclick="downloadHealthSummaryPDF()">
+          <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="main-wrapper">
+
+    <!-- ==========================================================================
+         1. PATIENT PORTAL
+         ========================================================================== -->
+    <section id="portal-patient" class="portal-view active">
+      
+      <!-- Patient Banner -->
+      <div class="glass-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(2,132,199,0.06), rgba(20,184,166,0.06));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h2 id="patient-banner-title" style="font-size: 1.8rem;">
+              <span data-i18n="welcomeMsg">Welcome back,</span> <span id="banner-patient-name" style="color: var(--accent-blue);">Eleanor Vance</span> 👋
+            </h2>
+            <p style="color: var(--text-secondary);" id="banner-patient-summary">
+              ID: PAT-1001 | Age: 68 / Female | Mobile: +91 98401 22310 | DOB: 1958-04-12 | Blood: A+ | Primary Diagnosis: Hypertension & Type-2 Diabetes
+            </p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="text-align: right;">
+              <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">AI HEALTH SCORE</div>
+              <div id="patient-health-score" style="font-size: 2.2rem; font-weight: 800; color: var(--accent-emerald);">88 / 100</div>
+            </div>
+
+            <!-- Download PDF Report Button -->
+            <button class="btn-primary" style="padding: 10px 18px; font-size: 0.9rem; background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple)); color: white;" onclick="downloadHealthSummaryPDF()">
+              <i class="fa-solid fa-download"></i> Download Health Summary PDF
+            </button>
+
+            <button class="btn-secondary" style="padding: 10px 16px; font-size: 0.85rem;" onclick="openQuickSummaryModal()">
+              <i class="fa-solid fa-bolt"></i> 30-Sec Summary
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMINENT AGENTIC HEALTHCARE JOURNEY COORDINATOR HERO INVOCATION -->
+      <div class="hero-agent-card">
+        <div class="hero-agent-title">
+          <div class="agent-avatar-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="gradient-text" style="font-size: 1.35rem; font-weight: 800;">CuraLink AI Journey Coordinator</span>
+              <span class="agent-status-tag"><span class="pulse-indicator"></span> Autonomous Agent Active</span>
+              <span class="demo-service-badge"><i class="fa-solid fa-trophy"></i> Hackathon Master Edition</span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 2px;">
+              Single-button, voice-enabled care orchestration for elderly patients: Cardiologist visits, clinical summary, wheelchair transport & caregiver alerts.
+            </p>
+          </div>
+        </div>
+
+        <button id="btn-hero-talk-agent" class="hero-agent-btn" onclick="openAgentCoordinatorModal()">
+          <i class="fa-solid fa-microphone-lines"></i>
+          <span>Talk to My Healthcare Agent</span>
+          <span class="pulse-indicator"></span>
+        </button>
+      </div>
+
+      <div class="grid-12">
+        
+        <!-- Left Column: Automatic Appointment Booking, Smart Reminders, Health Analytics, Current Meds, Medical History -->
+        <div class="col-8">
+
+          <!-- 1. AI AUTOMATIC APPOINTMENT CONSULTATION BOOKING CARD -->
+          <div class="glass-card" style="margin-bottom: 24px; border-color: var(--accent-teal);">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-calendar-check" style="color: var(--accent-teal);"></i>
+                <span>AI Automatic Appointment & Consultation Booking Engine</span>
+              </h3>
+              <span class="badge badge-complete"><i class="fa-solid fa-magic"></i> Auto-Recommended</span>
+            </div>
+
+            <div style="background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: var(--accent-blue); font-size: 1rem;" id="auto-booking-specialist-title">
+                  <i class="fa-solid fa-user-doctor"></i> Recommended Specialist: Dr. Marcus Vance (Cardiology)
+                </strong>
+                <span class="badge badge-update">Urgency: Within 7 Days</span>
+              </div>
+              <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px;" id="auto-booking-reason">
+                Reason: AI Continuous Monitoring detected elevated Blood Pressure (134/86 mmHg) over the past 60 days. Immediate follow-up advised.
+              </p>
+
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">AVAILABLE CONSULTATION SLOTS:</div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;">
+                <button class="slot-chip active" onclick="selectSlot(this)">Tomorrow at 10:00 AM (In-Person)</button>
+                <button class="slot-chip" onclick="selectSlot(this)">Friday at 02:30 PM (Tele-Consult)</button>
+                <button class="slot-chip" onclick="selectSlot(this)">Monday at 11:15 AM (In-Person)</button>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> City Heart Institute • Clinic Room 402</span>
+                <button class="btn-primary" onclick="confirmAppointmentBooking()">
+                  <i class="fa-solid fa-calendar-plus"></i> Confirm Consultation Booking
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. SMART MEDICINE REMINDER & DAILY ALARM MODULE -->
+          <div class="glass-card" style="margin-bottom: 24px; border-color: var(--accent-amber);">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-bell-concierge" style="color: var(--accent-amber);"></i>
+                <span>Smart Medicine Schedule & Daily Reminder Alarms</span>
+              </h3>
+              <span class="badge badge-update" id="adherence-badge">Adherence Rate: 95%</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" id="daily-reminder-cards-grid"></div>
+          </div>
+
+          <!-- 3. FULL INTERACTIVE HEALTH ANALYTICS DASHBOARD -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-blue);"></i>
+                <span>Interactive Longitudinal Health Analytics Dashboard</span>
+              </h3>
+
+              <div style="display: flex; gap: 6px;">
+                <button class="control-btn active" onclick="changeAnalyticsTimeframe('6m', this)">6 Months</button>
+                <button class="control-btn" onclick="changeAnalyticsTimeframe('1m', this)">1 Month</button>
+                <button class="control-btn" onclick="changeAnalyticsTimeframe('1y', this)">1 Year</button>
+              </div>
+            </div>
+
+            <div class="grid-12">
+              <div class="col-6">
+                <h5 style="margin-bottom: 6px; font-size: 0.88rem; color: var(--text-secondary);">Blood Pressure (Systolic / Diastolic mmHg)</h5>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md);">
+                  <svg viewBox="0 0 300 100" style="width: 100%; height: 90px;">
+                    <path id="chart-bp-path" d="M 10 70 L 60 65 L 110 50 L 160 55 L 210 40 L 260 45" fill="none" stroke="#0ea5e9" stroke-width="3"/>
+                    <circle cx="260" cy="45" r="5" fill="#0ea5e9"/>
+                    <text x="235" y="30" fill="#0ea5e9" font-size="10" font-weight="bold" id="chart-bp-text">128/82 mmHg</text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <h5 style="margin-bottom: 6px; font-size: 0.88rem; color: var(--text-secondary);">Fasting Glucose & HbA1c (mg/dL)</h5>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md);">
+                  <svg viewBox="0 0 300 100" style="width: 100%; height: 90px;">
+                    <path id="chart-glucose-path" d="M 10 55 L 60 60 L 110 40 L 160 70 L 210 50 L 260 45" fill="none" stroke="#14b8a6" stroke-width="3"/>
+                    <circle cx="260" cy="45" r="5" fill="#14b8a6"/>
+                    <text x="235" y="30" fill="#14b8a6" font-size="10" font-weight="bold" id="chart-glucose-text">110 mg/dL</text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <h5 style="margin-bottom: 6px; font-size: 0.88rem; color: var(--text-secondary);">Heart Rate & SpO2 %</h5>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md);">
+                  <svg viewBox="0 0 300 100" style="width: 100%; height: 90px;">
+                    <path d="M 10 40 L 60 45 L 110 42 L 160 38 L 210 44 L 260 40" fill="none" stroke="#10b981" stroke-width="3"/>
+                    <circle cx="260" cy="40" r="5" fill="#10b981"/>
+                    <text x="220" y="30" fill="#10b981" font-size="10" font-weight="bold">74 BPM | 98% SpO2</text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <h5 style="margin-bottom: 6px; font-size: 0.88rem; color: var(--text-secondary);">Body Weight & BMI Progression</h5>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md);">
+                  <svg viewBox="0 0 300 100" style="width: 100%; height: 90px;">
+                    <path d="M 10 50 L 60 48 L 110 52 L 160 49 L 210 46 L 260 45" fill="none" stroke="#8b5cf6" stroke-width="3"/>
+                    <circle cx="260" cy="45" r="5" fill="#8b5cf6"/>
+                    <text x="230" y="30" fill="#8b5cf6" font-size="10" font-weight="bold">68 kg | BMI 24.2</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 4. EXPLICIT SPECIFIED CURRENT MEDICATIONS TABLE -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-prescription-bottle-medical" style="color: var(--accent-blue);"></i>
+                <span>Active Current Medications & Dosage Details</span>
+              </h3>
+              <span class="badge badge-complete"><i class="fa-solid fa-check"></i> Verified Regimen</span>
+            </div>
+
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Medication Name</th>
+                  <th>Dosage & Frequency</th>
+                  <th>Clinical Purpose</th>
+                  <th>Stock & Refill Status</th>
+                  <th>Action / Notice</th>
+                </tr>
+              </thead>
+              <tbody id="patient-current-meds-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- 5. AI MEDICINE SAFETY SCANNER WITH EATING ADVICE -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-pills" style="color: var(--accent-teal);"></i>
+                <span>AI Medicine Safety Scanner & Detailed Eating Advice</span>
+              </h3>
+              <span class="badge badge-complete"><i class="fa-solid fa-shield-check"></i> Zero-Hallucination</span>
+            </div>
+
+            <p style="color: var(--text-secondary); margin-bottom: 12px; font-size: 0.9rem;">
+              Select a medicine preset or upload a scan to receive step-by-step advice on <strong>whether to eat/take the medicine or not</strong>, exact dosage, timing, and food interactions.
+            </p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="runMedicineCheck('Telmisartan 40mg')"><i class="fa-solid fa-capsules"></i> Telmisartan 40mg (Prescribed)</button>
+              <button class="btn-secondary" onclick="runMedicineCheck('Amoxicillin 500mg')"><i class="fa-solid fa-capsules"></i> Amoxicillin 500mg (Allergy Check)</button>
+              <button class="btn-secondary" onclick="runMedicineCheck('Aspirin 325mg')"><i class="fa-solid fa-capsules"></i> Aspirin 325mg (Interaction Check)</button>
+              <button class="btn-secondary" onclick="runMedicineCheck('Unverified Yellow Pill')"><i class="fa-solid fa-question-circle"></i> Unverified Pill</button>
+            </div>
+
+            <!-- Upload Box -->
+            <div class="glass-card" style="border: 2px dashed var(--accent-blue); text-align: center; cursor: pointer; padding: 18px;" onclick="document.getElementById('med-file-input').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--accent-blue); margin-bottom: 6px;"></i>
+              <div style="font-weight: 600;">Upload Prescription / Medicine Photo</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Tagged: "Patient Uploaded – Pending Doctor Verification"</div>
+              <input type="file" id="med-file-input" style="display: none;" onchange="handlePatientFileUpload(event)">
+            </div>
+
+            <!-- Verdict & Eating Advice Banner -->
+            <div id="verdict-banner-container" style="display: none; padding: 20px; border-radius: var(--radius-md); margin-top: 16px; border-left: 6px solid;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 id="verdict-title" style="font-size: 1.2rem; font-weight: 800;">🟢 SAFE TO EAT / TAKE</h4>
+                <button class="btn-audio" onclick="speakText(document.getElementById('verdict-details').innerText + '. ' + document.getElementById('verdict-eating-instructions').innerText)">Speak Instructions</button>
+              </div>
+              <p id="verdict-details" style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;"></p>
+
+              <div style="background: rgba(255,255,255,0.6); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08);" id="verdict-eating-box">
+                <div style="font-weight: 700; font-size: 0.88rem; color: var(--accent-blue); margin-bottom: 4px;">
+                  <i class="fa-solid fa-utensils"></i> AI Eating & Administration Guide:
+                </div>
+                <div id="verdict-eating-instructions" style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.5;"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 6. COMPLETE MEDICAL HISTORY DETAILS CARD -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-book-medical" style="color: var(--accent-purple);"></i>
+                <span>Complete Longitudinal Medical History & Diagnostic Panel</span>
+              </h3>
+            </div>
+
+            <div class="grid-12" id="complete-history-grid"></div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Care Team, Caregiver & Smart AI Chatbot -->
+        <div class="col-4">
+          
+          <!-- Care Team & Linked Caregiver -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h4 class="card-title"><i class="fa-solid fa-user-doctor" style="color: var(--accent-blue);"></i> Care Team & Linked Caregiver</h4>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">ASSIGNED DOCTOR</div>
+              <div style="font-weight: 700;" id="assigned-doctor-name">Dr. Marcus Vance</div>
+              <div style="font-size: 0.82rem; color: var(--text-secondary);">Cardiology | City Hospital</div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md);">
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-users"></i> LINKED CAREGIVER</div>
+              <div style="font-weight: 700;" id="caregiver-name">Sarah Vance (Daughter)</div>
+              <div style="font-size: 0.82rem; color: var(--text-secondary);" id="caregiver-phone">Emergency Contact: +91 98401 55412</div>
+              <span class="badge badge-complete" style="font-size: 0.65rem; margin-top: 6px;">Emergency Alerts Active</span>
+            </div>
+          </div>
+
+          <!-- Context-Aware AI Chatbot -->
+          <div class="glass-card" style="margin-top: 24px;">
+            <div class="card-header">
+              <h4 class="card-title"><i class="fa-solid fa-comments" style="color: var(--accent-purple);"></i> Smart AI Health Assistant</h4>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+              <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;" onclick="sendPresetChat('What medicines am I taking?')">What meds am I taking?</button>
+              <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;" onclick="sendPresetChat('What are my lab test results?')">Show lab test results</button>
+              <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;" onclick="sendPresetChat('Show my surgery history')">Show surgeries</button>
+              <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;" onclick="sendPresetChat('What allergies do I have?')">What allergies?</button>
+            </div>
+
+            <div id="chat-messages-box" style="height: 240px; overflow-y: auto; background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md); font-size: 0.86rem; display: flex; flex-direction: column; gap: 10px;">
+              <div style="background: rgba(2,132,199,0.12); padding: 8px 12px; border-radius: 10px; max-width: 90%;">
+                Hello! I am CuraLink AI. Ask me about your active medications, lab test results, surgeries, allergies, or doctor notes.
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <input type="text" id="chat-input" class="form-input" placeholder="Ask about medications, lab results..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+              <button class="btn-primary" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         2. DOCTOR COPILOT & CLINICAL TIMELINE PORTAL
+         ========================================================================== -->
+    <section id="portal-doctor" class="portal-view">
+      
+      <!-- Executive Brief Banner -->
+      <div class="glass-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(2,132,199,0.1)); border-color: var(--accent-purple);">
+        <div class="card-header" style="border-bottom: none; margin-bottom: 0;">
+          <h3 class="card-title" style="font-size: 1.4rem;">
+            <i class="fa-solid fa-user-ninja" style="color: var(--accent-purple);"></i>
+            <span>Doctor Copilot: 10-Second Executive Clinical Brief</span>
+          </h3>
+          <span class="badge badge-pending"><i class="fa-solid fa-bolt"></i> Real-time AI Inference</span>
+        </div>
+
+        <div class="grid-12" style="margin-top: 14px;">
+          <div class="col-8">
+            <h4 id="copilot-patient-headline" style="color: var(--accent-blue); font-size: 1.1rem; margin-bottom: 6px;">
+              Eleanor Vance (PAT-1001) | 68 Yrs Female
+            </h4>
+            <p id="copilot-executive-summary" style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 12px;">
+              Executive 10-Sec Brief: Patient has stable BP (128/82 mmHg) on Lisinopril 10mg. Fasting glucose at 110 mg/dL. 1 pending patient-uploaded document requiring doctor sign-off.
+            </p>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <span class="badge badge-missing" id="copilot-anomaly-tag">HbA1c 8.4% ↑ (Elevated)</span>
+              <span class="badge badge-update">Serum Creatinine 1.45 mg/dL ↑</span>
+            </div>
+          </div>
+
+          <div class="col-4" style="background: var(--bg-tertiary); padding: 14px; border-radius: var(--radius-md);">
+            <h5 style="font-size: 0.88rem; color: var(--accent-teal); margin-bottom: 6px;">Suggested Clinical Questions</h5>
+            <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 14px; line-height: 1.5;">
+              <li>Inquire about dietary adherence for glucose management.</li>
+              <li>Assess for peripheral edema or dizziness on standing.</li>
+              <li>Confirm prescription refill schedule.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-12">
+        
+        <!-- Left: Doctor AI Clinical Timeline -->
+        <div class="col-8">
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fa-solid fa-timeline" style="color: var(--accent-blue);"></i>
+                <span>Interactive AI Clinical Timeline & Medical Journey</span>
+              </h3>
+            </div>
+
+            <div id="doctor-clinical-timeline" class="clinical-timeline"></div>
+          </div>
+        </div>
+
+        <!-- Right: Doctor Verification Queue & Prescription Writer -->
+        <div class="col-4">
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h4 class="card-title"><i class="fa-solid fa-clipboard-check" style="color: var(--accent-blue);"></i> Hospital Verification Queue</h4>
+            </div>
+            <div id="doctor-verification-queue"></div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-header">
+              <h4 class="card-title"><i class="fa-solid fa-file-signature" style="color: var(--accent-teal);"></i> Digital Prescription Writer</h4>
+            </div>
+
+            <form onsubmit="handleDoctorPrescription(event)">
+              <div class="form-group">
+                <label class="form-label">Medication Name & Dosage</label>
+                <input type="text" id="doc-presc-name" class="form-input" placeholder="e.g. Metformin 500mg twice daily" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Clinical Instructions</label>
+                <textarea id="doc-presc-notes" class="form-textarea" rows="3" placeholder="Enter dosage instructions..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                <i class="fa-solid fa-check-double"></i> Authorize & Sign Prescription
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================================
+         3. ADMIN AUDIT PORTAL
+         ========================================================================== -->
+    <section id="portal-admin" class="portal-view">
+      
+      <!-- Missing Data Alert Banner -->
+      <div id="admin-missing-alert-banner" class="glass-card" style="margin-bottom: 24px; background: rgba(239,68,68,0.1); border-color: var(--accent-rose);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--accent-rose);"></i>
+            <div>
+              <h4 style="color: var(--accent-rose); font-size: 1.15rem;">AI Data Completeness Warning</h4>
+              <p id="admin-alert-banner-text" style="font-size: 0.9rem; color: var(--text-primary);">
+                8 patient records have missing mandatory clinical data (vitals older than 60 days or pending lab verifications).
+              </p>
+            </div>
+          </div>
+          <button class="btn-primary" style="background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple)); color: white;" onclick="dispatchStaffAlerts()">
+            <i class="fa-solid fa-paper-plane"></i> Dispatch One-Click Staff Alerts
+          </button>
+        </div>
+      </div>
+
+      <!-- Master Hospital Patient Roster -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fa-solid fa-hospital-user" style="color: var(--accent-blue);"></i>
+            <span>Master Patient Record Verification Roster (35 Hospital Patients)</span>
+          </h3>
+          <button class="btn-primary" onclick="openFHIRModal()"><i class="fa-solid fa-network-wired"></i> HL7 FHIR R4 Sync</button>
+        </div>
+
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Patient ID & Name</th>
+              <th>Mobile / DOB</th>
+              <th>Primary Condition</th>
+              <th>Record Status</th>
+              <th>Missing / Unverified Fields</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-master-roster-tbody"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       MODALS
+       ========================================================================== -->
+  
+  <!-- Modal: Short & Sweet 30-Sec Health Summary -->
+  <div id="modal-quick-summary" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-bolt" style="color: var(--accent-blue);"></i> 30-Second Executive Health Summary</h3>
+        <button class="control-btn" onclick="closeModal('modal-quick-summary')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="padding: 10px 0;">
+        <div style="background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); margin-bottom: 14px;">
+          <h4 id="quick-summary-name" style="color: var(--accent-blue); font-size: 1.15rem; margin-bottom: 6px;">Eleanor Vance (PAT-1001)</h4>
+          <p id="quick-summary-text1" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-primary);"></p>
+        </div>
+
+        <div style="background: rgba(20,184,166,0.08); border: 1px solid var(--accent-teal); padding: 14px; border-radius: var(--radius-md); margin-bottom: 14px;">
+          <h5 style="color: var(--accent-teal); font-size: 0.9rem; margin-bottom: 4px;"><i class="fa-solid fa-capsules"></i> Active Regimen & Refill Alert:</h5>
+          <p id="quick-summary-text2" style="font-size: 0.9rem; color: var(--text-primary);"></p>
+        </div>
+
+        <div style="background: rgba(139,92,246,0.08); border: 1px solid var(--accent-purple); padding: 14px; border-radius: var(--radius-md);">
+          <h5 style="color: var(--accent-purple); font-size: 0.9rem; margin-bottom: 4px;"><i class="fa-solid fa-user-doctor"></i> Next Scheduled Action:</h5>
+          <p id="quick-summary-text3" style="font-size: 0.9rem; color: var(--text-primary);"></p>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+        <button class="btn-audio" onclick="speakText(document.getElementById('quick-summary-text1').innerText + '. ' + document.getElementById('quick-summary-text2').innerText)">
+          <i class="fa-solid fa-volume-high"></i> Listen to Summary
+        </button>
+
+        <button class="btn-primary" style="background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple)); color: white;" onclick="downloadHealthSummaryPDF()">
+          <i class="fa-solid fa-file-pdf"></i> Download PDF Summary
+        </button>
+
+        <button class="btn-secondary" onclick="closeModal('modal-quick-summary')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Notifications Center -->
+  <div id="modal-notifs" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-bell" style="color: var(--accent-amber);"></i> Notifications Center</h3>
+        <button class="control-btn" onclick="closeModal('modal-notifs')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="notifs-modal-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Data Updater -->
+  <div id="modal-admin-update" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <h3 class="card-title" id="admin-update-modal-title">Admin Data Updater</h3>
+        <button class="control-btn" onclick="closeModal('modal-admin-update')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-admin-update" onsubmit="saveAdminRecordUpdate(event)">
+        <input type="hidden" id="admin-edit-patient-id">
+        <div class="form-group">
+          <label class="form-label">Blood Pressure (mmHg)</label>
+          <input type="text" id="admin-edit-bp" class="form-input" placeholder="e.g. 120/80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fasting Blood Glucose (mg/dL)</label>
+          <input type="text" id="admin-edit-glucose" class="form-input" placeholder="e.g. 95">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Active Prescription & Dosage</label>
+          <input type="text" id="admin-edit-prescription" class="form-input" placeholder="e.g. Lisinopril 10mg daily">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Doctor Clinical Notes</label>
+          <textarea id="admin-edit-notes" class="form-textarea" rows="3" placeholder="Enter notes..."></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('modal-admin-update')">Cancel</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: HL7 FHIR R4 JSON Viewer -->
+  <div id="modal-fhir" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-network-wired" style="color: var(--accent-blue);"></i> HL7 FHIR R4 JSON Payload</h3>
+        <button class="control-btn" onclick="closeModal('modal-fhir')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <pre id="fhir-code-box" style="background: #0f172a; color: #38bdf8; padding: 16px; border-radius: 10px; font-family: monospace; font-size: 0.85rem; max-height: 280px; overflow-y: auto;"></pre>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <button class="btn-secondary" onclick="simulateFHIRSync()"><i class="fa-solid fa-rotate"></i> 🔄 Sync FHIR R4 EHR</button>
+        <button class="btn-primary" onclick="copyFHIRJSON()"><i class="fa-solid fa-copy"></i> Copy JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: AGENTIC HEALTHCARE JOURNEY COORDINATOR (COMPETITION MASTER WORKSPACE)
+       ========================================================================== -->
+  <div id="modal-agent-coordinator" class="modal-overlay">
+    <div class="agent-modal-dialog">
+      
+      <!-- Header -->
+      <div class="agent-modal-header">
+        <div class="agent-identity">
+          <div class="agent-avatar-icon" style="width: 42px; height: 42px; font-size: 1.15rem;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <strong style="font-size: 1.15rem; color: var(--text-primary);">CuraLink Agentic Journey Coordinator</strong>
+              <span class="agent-status-tag"><span class="pulse-indicator"></span> Autonomous</span>
+              <span class="demo-service-badge"><i class="fa-solid fa-trophy"></i> AI Agent Edition</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">
+              Goal-Oriented Autonomous Agent with Real-Time Tool Calling & Human-In-The-Loop Verification
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <!-- Multilingual Selector for Agent (All 6 South Asian Languages) -->
+          <select id="agent-modal-lang-select" class="control-select" onchange="curalinkAgent.setLanguage(this.value)" style="padding: 4px 8px; font-size: 0.8rem;">
+            <option value="en">🇺🇸 English</option>
+            <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+            <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+            <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+            <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+            <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
+          </select>
+
+          <button class="control-btn" onclick="curalinkAgent.resetJourney()" title="Reset Journey">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+
+          <button class="control-btn" onclick="closeAgentCoordinatorModal()" title="Close Agent">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Split Workspace -->
+      <div class="agent-workspace-body">
+        
+        <!-- Left Column: Voice Interaction & Agent Thought Stream -->
+        <div class="agent-left-panel">
+          
+          <!-- Voice Interaction Zone -->
+          <div class="agent-voice-hero">
+            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+              VOICE HEALTHCARE COORDINATOR
+            </div>
+            
+            <button id="agent-big-mic-btn" class="big-mic-btn" onclick="curalinkAgent.toggleVoiceListening()" title="Click to Speak">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+            
+            <div id="agent-mic-status-text" style="font-size: 0.84rem; font-weight: 700; color: var(--accent-blue);">
+              Tap Mic to Speak
+            </div>
+
+            <!-- Quick Voice Prompts for Elderly (Dynamic Multilingual) -->
+            <div id="agent-voice-quick-pills" class="voice-quick-pills">
+              <button class="quick-voice-chip" onclick="curalinkAgent.handleUserInput('I need to meet my cardiologist tomorrow. Please arrange everything for me.')">
+                🎙️ "I need to meet my cardiologist tomorrow..."
+              </button>
+              <button class="quick-voice-chip" onclick="curalinkAgent.handleUserInput('நாளை என் இதய மருத்துவரை பார்க்க வேண்டும். எனக்கு எல்லாம் ஏற்பாடு செய்யுங்கள்.')">
+                🎙️ "நாளை என் இதய மருத்துவரை பார்க்க வேண்டும்..."
+              </button>
+              <button class="quick-voice-chip" onclick="curalinkAgent.handleUserInput('I have severe chest tightness and dizziness since morning.')">
+                🚨 Test: "Severe chest tightness & dizziness" (Urgent)
+              </button>
+            </div>
+          </div>
+
+          <!-- Conversational Chat Stream -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-comments"></i> CONVERSATION</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Voice & Text Synchronized</span>
+          </div>
+          <div id="agent-chat-stream" class="agent-chat-stream"></div>
+
+          <!-- Text Input Alternative -->
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="agent-text-input" class="form-input" style="font-size: 0.88rem;" placeholder="Type your care request or questions..." onkeypress="if(event.key==='Enter') curalinkAgent.handleUserInput(this.value)">
+            <button class="btn-primary" style="padding: 0 16px;" onclick="curalinkAgent.handleUserInput(document.getElementById('agent-text-input').value)">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+
+          <!-- Chain-of-Thought (CoT) & Tool Calling Stream -->
+          <div style="margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;"><i class="fa-solid fa-terminal"></i> AGENT THOUGHT & TOOL EXECUTION TRACE</span>
+              <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem;" onclick="curalinkAgent.viewAuditTrail()">View Audit</button>
+            </div>
+            <div id="agent-thought-stream" class="agent-thought-stream"></div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: 8-Step Progress Stepper & Dynamic Action Workspace -->
+        <div class="agent-right-panel">
+          
+          <!-- Stepper Progress Panel -->
+          <div class="journey-stepper-container">
+            <div class="journey-stepper-title">
+              <span><i class="fa-solid fa-route" style="color: var(--accent-blue);"></i> 8-Step Healthcare Journey Pipeline</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Automated Multi-Tool Orchestration</span>
+            </div>
+            <div id="agent-stepper-list" class="stepper-list"></div>
+          </div>
+
+          <!-- Action Workspace: Human-In-The-Loop Approval Cards Rendered Here -->
+          <div id="agent-action-workspace"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Floating Agent Quick-Access Button -->
+  <button class="floating-agent-pill" onclick="openAgentCoordinatorModal()" title="Talk to My Healthcare Agent">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
+    <span>Talk to My Healthcare Agent</span>
+    <span class="pulse-indicator"></span>
+  </button>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript Application Logic -->
+  <script src="app.js"></script>
+  <!-- Specialized Autonomous Healthcare Journey Agent -->
+  <script src="agent.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+name: synthesize_clinical_summary
+description: Compiles a structured, zero-hallucination doctor-visit medical brief from verified EHR records
+parameters:
+  type: object
+  properties:
+    patientId:
+      type: string
+      description: Unique Patient ID (e.g. "PAT-1001")
+    primaryDiagnosis:
+      type: string
+      description: Documented medical condition
+    reportedSymptoms:
+      type: string
+      description: Patient-stated reason for visit
+  required:
+    - patientId
+returns:
+  type: object
+  properties:
+    reason:
+      type: string
+    verifiedDiagnoses:
+      type: string
+    activeMedications:
+      type: array
+      items:
+        type: string
+    allergies:
+      type: array
+      items:
+        type: string
+    latestVitals:
+      type: string
+    questionsForDoctor:
+      type: string

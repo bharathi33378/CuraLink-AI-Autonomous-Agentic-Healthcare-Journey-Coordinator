@@ -1,0 +1,91 @@
+spec_version: "0.1.0"
+name: curalink-ai
+version: "2.0.0"
+description: "Autonomous Agentic Healthcare Journey Coordinator for Elderly Patients with Voice, Segregation of Duties, and Clinical Triage"
+
+model:
+  preferred: gemini-1.5-flash
+  fallback: claude-3-5-sonnet
+
+frameworks:
+  - open-gap
+  - web-speech-api
+  - hl7-fhir-r4
+
+identity:
+  soul: SOUL.md
+  rules: RULES.md
+  duties: DUTIES.md
+  agents: AGENTS.md
+
+skills:
+  - id: clinical-triage
+    path: skills/clinical-triage/SKILL.md
+    description: "Evaluates red-flag symptoms and risk levels with emergency escalation"
+  - id: journey-coordination
+    path: skills/journey-coordination/SKILL.md
+    description: "Autonomous 8-step planning, appointment scheduling, and mobility transit"
+
+tools:
+  - id: query_doctor_availability
+    schema: tools/doctor_availability.yaml
+  - id: synthesize_clinical_summary
+    schema: tools/clinical_summary.yaml
+  - id: book_patient_transport
+    schema: tools/transport_dispatch.yaml
+
+workflows:
+  - id: healthcare-journey-flow
+    path: workflows/healthcare-journey-flow.yaml
+
+knowledge:
+  - path: knowledge/clinical_guidelines.md
+  - path: knowledge/emergency_protocols.md
+
+memory:
+  runtime:
+    context: memory/runtime/context.md
+    dailylog: memory/runtime/dailylog.md
+
+compliance:
+  risk_tier: high
+  frameworks:
+    - hipaa
+    - hl7_fhir_r4
+    - finra_supervision_analog
+  supervision:
+    human_in_the_loop: always
+    kill_switch: true
+  recordkeeping:
+    audit_logging: true
+    retention_period: 7y
+    immutable: true
+  segregation_of_duties:
+    roles:
+      - id: triage_agent
+        description: "Patient intake, symptom triage, journey proposal creation"
+        permissions: [intake, propose_plan, query_records]
+      - id: doctor_copilot
+        description: "Clinical evaluation, prescription authorization, lab verification"
+        permissions: [verify_records, sign_prescription, review_summary]
+      - id: care_coordinator
+        description: "Transit booking, reminder alarms, calendar reservation"
+        permissions: [book_transit, set_reminders, dispatch_caregiver_alert]
+      - id: admin_auditor
+        description: "Data completeness verification and missing telemetry audits"
+        permissions: [audit_records, dispatch_staff_alerts, update_vitals]
+    conflicts:
+      - [triage_agent, doctor_copilot]       # Triage agent cannot sign clinical prescriptions
+      - [care_coordinator, doctor_copilot]   # Transport coordinator cannot authorize medical records
+    assignments:
+      curalink-journey-agent: [triage_agent, care_coordinator]
+      doctor-copilot-agent: [doctor_copilot]
+      hospital-admin-agent: [admin_auditor]
+    handoffs:
+      - action: prescription_authorization
+        required_roles: [triage_agent, doctor_copilot]
+        approval_required: true
+      - action: journey_plan_execution
+        required_roles: [triage_agent, care_coordinator]
+        approval_required: true
+    enforcement: strict

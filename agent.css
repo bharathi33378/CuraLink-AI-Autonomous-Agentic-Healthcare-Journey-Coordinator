@@ -1,0 +1,523 @@
+/* ==========================================================================
+   CURALINK AI - AGENTIC HEALTHCARE JOURNEY COORDINATOR DESIGN SYSTEM
+   Specialized for Hackathon Showcase & Elderly Accessibility
+   ========================================================================== */
+
+/* --- 1. HERO AGENT INVOCATION BUTTON --- */
+.hero-agent-card {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(139, 92, 246, 0.15));
+  border: 2px solid var(--accent-blue);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(2, 132, 199, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-agent-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+  animation: pulse-glow 6s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.1); opacity: 0.9; }
+}
+
+.hero-agent-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agent-avatar-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+}
+
+.hero-agent-btn {
+  background: linear-gradient(135deg, #0284c7, #8b5cf6);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 28px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+  position: relative;
+}
+
+.hero-agent-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(139, 92, 246, 0.45);
+}
+
+.hero-agent-btn:active {
+  transform: translateY(1px);
+}
+
+.pulse-indicator {
+  width: 10px;
+  height: 10px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Floating Agent Pill */
+.floating-agent-pill {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  background: linear-gradient(135deg, #0284c7, #8b5cf6);
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  z-index: 999;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.floating-agent-pill:hover {
+  transform: scale(1.05);
+}
+
+/* --- 2. MODAL & FULL AGENT COORDINATOR WORKSPACE --- */
+.agent-modal-dialog {
+  max-width: 1100px;
+  width: 95%;
+  max-height: 90vh;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.agent-modal-header {
+  padding: 18px 24px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(139, 92, 246, 0.08));
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.agent-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agent-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.demo-service-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* --- 3. SPLIT WORKSPACE: CONVERSATION (LEFT) & JOURNEY STEPS (RIGHT) --- */
+.agent-workspace-body {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .agent-workspace-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+/* Left Panel: Voice & Chat & Agent Thought Stream */
+.agent-left-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  padding: 16px;
+  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Big Voice Interaction Zone */
+.agent-voice-hero {
+  background: var(--bg-secondary);
+  border: 2px solid rgba(2, 132, 199, 0.25);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.big-mic-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #ffffff;
+  font-size: 1.8rem;
+  border: none;
+  cursor: pointer;
+  margin: 8px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+}
+
+.big-mic-btn.listening {
+  background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple));
+  animation: mic-pulse 1.2s infinite;
+}
+
+@keyframes mic-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.12); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Voice Quick Prompts (Accessible for Seniors) */
+.voice-quick-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.quick-voice-chip {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.quick-voice-chip:hover {
+  background: rgba(2, 132, 199, 0.12);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Conversational Chat Box */
+.agent-chat-stream {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 200px;
+  max-height: 320px;
+}
+
+.chat-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 88%;
+}
+
+.chat-bubble.patient {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-bubble.agent {
+  align-self: flex-start;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-bottom-left-radius: 2px;
+}
+
+/* Agent Live Reasoning & Thought Stream */
+.agent-thought-stream {
+  background: #0b1329;
+  color: #38bdf8;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-family: monospace;
+  font-size: 0.78rem;
+  max-height: 130px;
+  overflow-y: auto;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.thought-entry {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.thought-entry .tag {
+  color: #a855f7;
+  font-weight: 700;
+}
+
+.thought-entry .tool-tag {
+  color: #34d399;
+  font-weight: 700;
+}
+
+/* Right Panel: Journey Stepper & Interactive Action Cards */
+.agent-right-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+}
+
+/* 8-Step Pipeline Tracker */
+.journey-stepper-container {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px solid var(--border-color);
+}
+
+.journey-stepper-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+
+.stepper-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  font-size: 0.84rem;
+  transition: all 0.2s ease;
+}
+
+.step-row.completed {
+  border-left: 4px solid var(--accent-emerald);
+}
+
+.step-row.in-progress {
+  border-left: 4px solid var(--accent-blue);
+  background: rgba(2, 132, 199, 0.05);
+  font-weight: 600;
+}
+
+.step-row.awaiting {
+  border-left: 4px solid var(--accent-amber);
+  background: rgba(245, 158, 11, 0.05);
+  font-weight: 600;
+}
+
+.step-row.pending {
+  color: var(--text-muted);
+}
+
+.step-status-pill {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.step-status-pill.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.step-status-pill.in-progress {
+  background: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+}
+
+.step-status-pill.awaiting {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.step-status-pill.pending {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748b;
+}
+
+/* Action Workspace Cards (HITL Approval Cards) */
+.agent-action-card {
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-blue);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.action-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Transport Option Cards */
+.transport-card-option {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transport-card-option:hover, .transport-card-option.selected {
+  border-color: var(--accent-blue);
+  background: rgba(2, 132, 199, 0.05);
+}
+
+/* Emergency Red Alert Modal */
+.emergency-alert-card {
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid var(--accent-rose);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  animation: red-pulse 2s infinite;
+}
+
+@keyframes red-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Elder Mode Overrides */
+body.elder-mode .agent-modal-dialog {
+  background: #000000 !important;
+  border: 3px solid #ffffff !important;
+}
+
+body.elder-mode .agent-left-panel,
+body.elder-mode .agent-right-panel,
+body.elder-mode .agent-voice-hero,
+body.elder-mode .agent-chat-stream {
+  background: #111111 !important;
+  color: #ffffff !important;
+}
+
+body.elder-mode .chat-bubble.agent,
+body.elder-mode .step-row,
+body.elder-mode .agent-action-card {
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+  font-size: 1.1rem !important;
+}
+
+body.elder-mode .hero-agent-btn,
+body.elder-mode .big-mic-btn {
+  transform: scale(1.1);
+  border: 2px solid #ffffff !important;
+}

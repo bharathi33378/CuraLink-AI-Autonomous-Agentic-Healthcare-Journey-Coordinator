@@ -1,0 +1,34 @@
+name: query_doctor_availability
+description: Queries available consultation slots and consultation fees for a specialist physician
+parameters:
+  type: object
+  properties:
+    doctorId:
+      type: string
+      description: Name or ID of the physician (e.g. "Dr. Marcus Vance")
+    specialty:
+      type: string
+      description: Clinical specialty (e.g. "Cardiology")
+    hospital:
+      type: string
+      description: Clinic or hospital facility
+    timeframe:
+      type: string
+      description: Preferred date or window (e.g. "Tomorrow")
+  required:
+    - doctorId
+    - specialty
+returns:
+  type: array
+  items:
+    type: object
+    properties:
+      slot:
+        type: string
+      mode:
+        type: string
+        enum: [In-Person, Tele-Consult]
+      fee:
+        type: string
+      suite:
+        type: string

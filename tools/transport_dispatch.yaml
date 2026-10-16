@@ -1,0 +1,32 @@
+name: book_patient_transport
+description: Dispatches mobility-assisted transportation to clinical facilities
+parameters:
+  type: object
+  properties:
+    patientId:
+      type: string
+    pickupAddress:
+      type: string
+    hospitalAddress:
+      type: string
+    appointmentTime:
+      type: string
+    vehicleType:
+      type: string
+      enum: [AC Senior Medical Cab, Standard City Taxi, Family Accompanied Ride]
+    wheelchairAssistance:
+      type: boolean
+  required:
+    - patientId
+    - hospitalAddress
+returns:
+  type: object
+  properties:
+    bookingId:
+      type: string
+    pickupTime:
+      type: string
+    driverName:
+      type: string
+    estimatedFare:
+      type: string

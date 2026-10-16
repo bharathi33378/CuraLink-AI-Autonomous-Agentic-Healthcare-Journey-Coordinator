@@ -1,0 +1,53 @@
+name: healthcare-journey-flow
+description: Autonomous 8-step healthcare coordination workflow
+triggers:
+  - patient_voice_request
+  - patient_text_request
+
+steps:
+  triage:
+    skill: clinical-triage
+    inputs:
+      utterance: ${{ trigger.text }}
+
+  context:
+    tool: get_patient_profile
+    depends_on: [triage]
+    inputs:
+      patient_id: ${{ trigger.patient_id }}
+
+  plan:
+    agent: curalink-journey-agent
+    depends_on: [context]
+    prompt: |
+      Generate 8-step journey plan for cardiology consultation.
+      Present plan to patient for HITL approval.
+
+  approval:
+    action: hitl_gate
+    depends_on: [plan]
+    requires: patient_consent
+
+  doctor_booking:
+    tool: query_doctor_availability
+    depends_on: [approval]
+
+  summary_synthesis:
+    tool: synthesize_clinical_summary
+    depends_on: [doctor_booking]
+
+  transport_booking:
+    tool: book_patient_transport
+    depends_on: [summary_synthesis]
+
+  reminders_and_alerts:
+    action: dispatch_caregiver_alert
+    depends_on: [transport_booking]
+    inputs:
+      caregiver: ${{ steps.context.outputs.caregiver }}
+      appointment: ${{ steps.doctor_booking.outputs.selected_slot }}
+
+error_handling:
+  on_urgent_symptom: emergency_escalation
+  on_no_slots: search_alternative_specialists
+  on_transport_failure: alert_caregiver_fallback
