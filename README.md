@@ -11,7 +11,7 @@
 > **Compliant with OpenGAP (Git Agent Protocol) v0.1.0 Standard**
 
 🌐 **Live Deployed App**: [https://curalink-ai-hackathon.surge.sh](https://curalink-ai-hackathon.surge.sh)  
-📂 **GitHub Repository**: `https://github.com/your-username/curalink-ai`  
+📂 **GitHub Repository**: `https://github.com/bharathi33378/CuraLink-AI-Autonomous-Agentic-Healthcare-Journey-Coordinator`  
 📄 **OpenGAP Manifest**: [`agent.yaml`](./agent.yaml) | [`SOUL.md`](./SOUL.md) | [`RULES.md`](./RULES.md) | [`DUTIES.md`](./DUTIES.md)  
 📄 **Product Requirement Document**: [`PRD.md`](./PRD.md)  
 📐 **Architecture Diagram Document**: [`architecture_diagram.md`](file:///C:/Users/ntbha/.gemini/antigravity/brain/51c3a215-d490-458d-b54d-2b795c9525be/architecture_diagram.md)
