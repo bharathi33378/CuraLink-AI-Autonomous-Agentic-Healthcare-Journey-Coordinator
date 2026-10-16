@@ -1,7 +1,6 @@
 ---
 name: clinical-triage
 description: Autonomous clinical symptom triage and emergency red-flag detection
-version: 1.0.0
 ---
 
 # Clinical Triage Skill

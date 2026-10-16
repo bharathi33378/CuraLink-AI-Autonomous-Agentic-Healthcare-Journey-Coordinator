@@ -1,7 +1,6 @@
 ---
 name: journey-coordination
 description: Multi-step healthcare journey orchestration for appointments, transport, and records
-version: 1.0.0
 ---
 
 # Healthcare Journey Coordination Skill
