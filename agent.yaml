@@ -1,5 +1,6 @@
 spec_version: "0.1.0"
 name: curalink-ai
+display_name: "CuraLink AI — Autonomous Agentic Healthcare Journey Coordinator"
 version: "2.0.0"
 description: "Autonomous Agentic Healthcare Journey Coordinator for Elderly Patients with Voice, Segregation of Duties, and Clinical Triage"
 

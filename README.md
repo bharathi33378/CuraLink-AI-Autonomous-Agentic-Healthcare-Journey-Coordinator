@@ -1,4 +1,4 @@
-# CuraLink AI – Intelligent Healthcare Assistant Agent
+# CuraLink AI — Autonomous Agentic Healthcare Journey Coordinator
 
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenGAP Spec: v0.1.0](https://img.shields.io/badge/OpenGAP-v0.1.0-blue)](https://github.com/open-gitagent/gitagent)
@@ -19,7 +19,7 @@
 ---
 
 ## 📌 1. Project Name
-**CuraLink AI – Intelligent Healthcare Assistant Agent**
+**CuraLink AI — Autonomous Agentic Healthcare Journey Coordinator**
 
 ---
 

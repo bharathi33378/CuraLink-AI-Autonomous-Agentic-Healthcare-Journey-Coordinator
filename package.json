@@ -1,0 +1,21 @@
+{
+  "name": "curalink-ai",
+  "version": "2.0.0",
+  "description": "CuraLink AI — Autonomous Agentic Healthcare Journey Coordinator",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "surge . curalink-ai-hackathon.surge.sh",
+    "validate": "npx @open-gitagent/opengap validate",
+    "info": "npx @open-gitagent/opengap info"
+  },
+  "keywords": [
+    "opengap",
+    "gitagent",
+    "healthcare-ai",
+    "ai-agent",
+    "multilingual-voice",
+    "elderly-care",
+    "hl7-fhir"
+  ],
+  "license": "MIT"
+}
